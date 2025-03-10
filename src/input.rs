@@ -1,9 +1,5 @@
 use {
-  super::{
-    argparse::{Arguments, Mode},
-    types::Die,
-    udiff::DiffRange,
-  },
+  super::{argparse::Mode, types::Die, udiff::DiffRange},
   futures::{
     future::{ready, Either},
     stream::{self, once, try_unfold, Stream, TryStreamExt},
@@ -12,18 +8,14 @@ use {
   regex::Regex,
   std::{
     collections::HashSet,
-    ffi::OsString,
-    io::{self, ErrorKind, IsTerminal},
+    io::ErrorKind,
     path::{Path, PathBuf},
   },
   tokio::{
     fs::{canonicalize, File},
-    io::{stdin, AsyncBufReadExt, BufReader},
+    io::{AsyncBufReadExt, BufReader},
   },
 };
-
-#[cfg(target_family = "unix")]
-use std::os::unix::ffi::OsStringExt;
 
 #[derive(Debug)]
 pub enum RowIn {
@@ -130,22 +122,6 @@ async fn stream_patch(patches: &Path) -> impl Stream<Item = Result<RowIn, Die>> 
   );
 
   Either::Right(stream.try_filter_map(|x| ready(Ok(x))))
-}
-
-#[allow(clippy::unnecessary_wraps, unused_variables)]
-fn u8_pathbuf(trim_cr: bool, v8: Vec<u8>) -> Option<PathBuf> {
-  #[cfg(target_family = "unix")]
-  {
-    Some(PathBuf::from(OsString::from_vec(v8)))
-  }
-  #[cfg(target_family = "windows")]
-  {
-    let mut buf = String::from_utf8(v8).ok()?;
-    if trim_cr && buf.ends_with('\r') {
-      let _ = buf.pop();
-    }
-    Some(PathBuf::from(OsString::from(buf)))
-  }
 }
 
 fn stream_files(files: Vec<PathBuf>) -> impl Stream<Item = Result<RowIn, Die>> {
