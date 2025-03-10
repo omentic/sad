@@ -34,13 +34,13 @@ pub struct Arguments {
   #[clap()]
   pub pattern: String,
 
-  /// Replacement pattern, empty = delete
+  /// Replacement pattern
   #[clap()]
-  pub replace: Option<String>,
+  pub replace: String,
 
-  /// Use \0 as stdin delimiter
-  #[clap(short = '0', long)]
-  pub read0: bool,
+  // Files to operate on, none = current directory
+  #[clap()]
+  pub files: Option<Vec<PathBuf>>,
 
   /// No preview, write changes to file
   #[clap(short = 'k', long)]
@@ -83,12 +83,6 @@ pub struct Arguments {
   /// ie. a higher {size} will leader to more changes grouped together
   #[clap(short, long)]
   pub unified: Option<usize>,
-
-  /// Trim '\r' from input filenames
-  ///
-  /// Windows only, default = true
-  #[clap(long)]
-  pub trim_cr: Option<bool>,
 }
 
 fn parse_fzf_mode(argv: &OsString) -> Option<Mode> {
@@ -266,7 +260,7 @@ pub fn parse_opts(mode: Mode, args: Arguments) -> Result<Options, Die> {
   );
 
   let engine = {
-    let replace = args.replace.unwrap_or_default();
+    let replace = args.replace;
     if args.exact {
       Engine::AhoCorasick(p_aho_corasick(&args.pattern, flagset)?, replace)
     } else {

@@ -6,7 +6,8 @@ use {
   },
   futures::{
     future::{ready, Either},
-    stream::{once, try_unfold, Stream, TryStreamExt},
+    stream::{self, once, try_unfold, Stream, TryStreamExt},
+    StreamExt,
   },
   regex::Regex,
   std::{
@@ -147,50 +148,36 @@ fn u8_pathbuf(trim_cr: bool, v8: Vec<u8>) -> Option<PathBuf> {
   }
 }
 
-fn stream_stdin(use_nul: bool, trim_cr: bool) -> impl Stream<Item = Result<RowIn, Die>> {
-  if io::stdin().is_terminal() {
-    let err = Die::ArgumentError("/dev/stdin connected to tty".to_owned());
-    return Either::Left(once(ready(Err(err))));
+fn stream_files(files: Vec<PathBuf>) -> impl Stream<Item = Result<RowIn, Die>> {
+  if false {
+    return Either::Left(once(ready(Err(Die::Eof))));
   }
-  let delim = if use_nul { b'\0' } else { b'\n' };
-  let reader = BufReader::new(stdin()).split(delim);
+  let reader = stream::iter(files);
   let seen = HashSet::new();
 
   let stream = try_unfold((reader, seen), move |mut s| async move {
-    let next = s
-      .0
-      .next_segment()
-      .await
-      .map_err(|e| Die::IO(PathBuf::from("/dev/stdin"), e.kind()))?;
-    match next {
+    match s.0.next().await {
       None => Ok(None),
-      Some(buf) => {
-        if let Some(path) = u8_pathbuf(trim_cr, buf) {
-          match canonicalize(&path).await {
-            Err(e) if e.kind() == ErrorKind::NotFound => Ok(Some((None, s))),
-            Err(e) => Err(Die::IO(path, e.kind())),
-            Ok(canonical) => Ok(Some({
-              if s.1.insert(canonical.clone()) {
-                (Some(RowIn::Entire(canonical)), s)
-              } else {
-                (None, s)
-              }
-            })),
+      Some(path) => match canonicalize(&path).await {
+        Err(e) if e.kind() == ErrorKind::NotFound => Ok(Some((None, s))),
+        Err(e) => Err(Die::IO(path, e.kind())),
+        Ok(canonical) => Ok(Some({
+          if s.1.insert(canonical.clone()) {
+            (Some(RowIn::Entire(canonical)), s)
+          } else {
+            (None, s)
           }
-        } else {
-          Ok(Some((None, s)))
-        }
-      }
+        })),
+      },
     }
   });
 
   Either::Right(stream.try_filter_map(|x| ready(Ok(x))))
 }
 
-pub async fn stream_in(mode: &Mode, args: &Arguments) -> impl Stream<Item = Result<RowIn, Die>> {
-  let trim_cr = args.trim_cr.unwrap_or_default();
+pub async fn stream_in(mode: &Mode, files: Vec<PathBuf>) -> impl Stream<Item = Result<RowIn, Die>> {
   match mode {
-    Mode::Initial => Either::Left(stream_stdin(args.read0, trim_cr)),
+    Mode::Initial => Either::Left(stream_files(files)),
     Mode::Preview(path) | Mode::Patch(path) => Either::Right(stream_patch(path).await),
   }
 }

@@ -11,6 +11,7 @@ use {
 };
 
 #[derive(Debug)]
+#[allow(dead_code)]
 pub enum Die {
   ArgumentError(String),
   BadExit(PathBuf, i32),
