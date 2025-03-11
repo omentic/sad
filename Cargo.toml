@@ -12,6 +12,7 @@ ansi_term = { version = "*" }
 clap = { version = "*", features = ["derive", "wrap_help"] }
 difflib = { version = "*" }
 futures = { version = "*" }
+glob = { version = "*" }
 regex = { version = "*" }
 shlex = { version = "*" }
 tokio = { version = "*", features = [

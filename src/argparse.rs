@@ -38,9 +38,9 @@ pub struct Arguments {
   #[clap()]
   pub replace: String,
 
-  // Files to operate on, none = current directory
+  /// Paths to operate on, none = current directory
   #[clap()]
-  pub files: Option<Vec<PathBuf>>,
+  pub paths: Option<Vec<String>>,
 
   /// No preview, write changes to file
   #[clap(short = 'k', long)]

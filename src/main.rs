@@ -17,7 +17,7 @@ mod udiff_spec;
 
 use {
   ansi_term::Colour,
-  argparse::{parse_args, parse_opts, Action, Arguments, Options, Printer},
+  argparse::{parse_args, parse_opts, Action, Options, Printer},
   displace::displace,
   futures::{
     future::{ready, Either},
@@ -80,25 +80,8 @@ async fn consume(stream: impl Stream<Item = Result<(), Die>> + Send) -> Result<(
 
 async fn run(threads: usize) -> Result<(), Die> {
   let (mode, args) = parse_args();
-  let input_stream = match args.files {
-    None => {
-      let current_dir = std::env::current_dir().expect("insufficient permissions");
-      let read_dir = std::fs::read_dir(current_dir).expect("insufficient permissions");
-      let files = read_dir
-        .filter_map(|entry| {
-          let path = entry.ok()?.path();
-          if path.is_file() {
-            Some(path)
-          } else {
-            None
-          }
-        })
-        .collect();
-      stream_in(&mode, files).await
-    }
-    Some(files) => stream_in(&mode, files).await, // todo: support folders as arguments
-  };
-  let opts = Arc::new(parse_opts(mode, Arguments { files: None, ..args },)?);
+  let input_stream = stream_in(&mode, &args).await;
+  let opts = Arc::new(parse_opts(mode, args)?);
 
   let trans_stream = input_stream
     .map_ok(|input| displace(opts.clone(), input))

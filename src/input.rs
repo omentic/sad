@@ -1,10 +1,15 @@
 use {
-  super::{argparse::Mode, types::Die, udiff::DiffRange},
+  super::{
+    argparse::{Arguments, Mode},
+    types::Die,
+    udiff::DiffRange,
+  },
   futures::{
     future::{ready, Either},
     stream::{self, once, try_unfold, Stream, TryStreamExt},
     StreamExt,
   },
+  glob::glob,
   regex::Regex,
   std::{
     collections::HashSet,
@@ -124,7 +129,17 @@ async fn stream_patch(patches: &Path) -> impl Stream<Item = Result<RowIn, Die>> 
   Either::Right(stream.try_filter_map(|x| ready(Ok(x))))
 }
 
-fn stream_files(files: Vec<PathBuf>) -> impl Stream<Item = Result<RowIn, Die>> {
+#[allow(clippy::useless_format)]
+fn iter_paths(globs: impl IntoIterator<Item = String>) -> impl Iterator<Item = PathBuf> {
+  globs
+    .into_iter()
+    .flat_map(|pattern| [format!("{pattern}"), format!("{pattern}/*")])
+    .filter_map(|pattern| glob(&pattern).ok())
+    .flatten()
+    .filter_map(|path| path.ok().filter(|path| path.is_file()))
+}
+
+fn stream_files(files: impl Iterator<Item = PathBuf>) -> impl Stream<Item = Result<RowIn, Die>> {
   if false {
     return Either::Left(once(ready(Err(Die::Eof))));
   }
@@ -151,9 +166,16 @@ fn stream_files(files: Vec<PathBuf>) -> impl Stream<Item = Result<RowIn, Die>> {
   Either::Right(stream.try_filter_map(|x| ready(Ok(x))))
 }
 
-pub async fn stream_in(mode: &Mode, files: Vec<PathBuf>) -> impl Stream<Item = Result<RowIn, Die>> {
+#[allow(clippy::option_if_let_else)]
+pub async fn stream_in(mode: &Mode, args: &Arguments) -> impl Stream<Item = Result<RowIn, Die>> {
   match mode {
-    Mode::Initial => Either::Left(stream_files(files)),
+    Mode::Initial => match &args.paths {
+      None => { // todo: consider adding back support for stream editing?
+        let current_dir = std::env::current_dir().expect("insufficient permissions").to_str().unwrap().to_owned();
+        Either::Left(stream_files(iter_paths(vec![current_dir].into_iter())))
+      },
+      Some(paths) => Either::Left(stream_files(iter_paths(paths.clone().into_iter()))),
+    },
     Mode::Preview(path) | Mode::Patch(path) => Either::Right(stream_patch(path).await),
   }
 }
