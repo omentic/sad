@@ -74,7 +74,7 @@ def _compile(triple: str) -> None:
 
 def _bin_path(triple: str) -> Path:
     suffix = ".exe" if "windows" in triple else ""
-    release = _TOP_LEVEL / "target" / triple / "release" / "sad"
+    release = _TOP_LEVEL / "target" / triple / "release" / "sod"
     return release.with_suffix(suffix)
 
 
@@ -94,7 +94,7 @@ def _deb(triple: str) -> None:
     release = _bin_path(triple)
     tmp = _TOP_LEVEL / "temp" / triple
 
-    sad = tmp / "usr" / "bin" / "sad"
+    sod = tmp / "usr" / "bin" / "sod"
     control = tmp / "DEBIAN" / "control"
     deb = (_ARTS / triple).with_suffix(".deb")
 
@@ -111,10 +111,10 @@ def _deb(triple: str) -> None:
 
     with suppress(FileNotFoundError):
         rmtree(tmp)
-    for path in (sad, control):
+    for path in (sod, control):
         path.parent.mkdir(parents=True, exist_ok=True)
     control.write_text(render)
-    copy2(release, sad)
+    copy2(release, sod)
 
     if which("dpkg-deb"):
         check_call(

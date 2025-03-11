@@ -1,3 +1,39 @@
+# sod.
+
+This is a fork of [ms-jpq's `sad`](https://github.com/ms-jpq/sad).
+
+It changes the argument parsing to expect a list of paths/globs following the search and (now obligatory) replace pattern, in place of reading file paths from stdin. If no paths are passed, it will operate on the working directory by default like `rg` and friends.
+
+That's it. It's meant to be used with `xargs` or (preferably) something better.
+
+```
+NAME
+        sod - filter and transform text within files
+        https://github.com/omentic/sod
+
+SYNOPSIS
+        sod [OPTIONS] PATTERN REPLACE [PATH...]
+        command | sod [OPTIONS] PATTERN REPLACE
+
+ARGUMENTS
+        PATTERN: A search pattern.
+        REPLACE: A replacement pattern.
+        PATH: A file or directory to search.
+          The current directory unless specified.
+
+OPTIONS
+        -k, --commit       No preview, write changes to file
+        -e, --exact        String literal mode
+        -f, --flags FLAGS  Various regex flags
+            --fzf <FZF>    Additional Fzf options, disable = never
+        -h, --help         Print help
+        -V, --version      Print version
+```
+
+Below is the original README. Be warned: its examples do not work with `sod`.
+
+---
+
 # [SAD!](https://ms-jpq.github.io/sad)
 
 **Space Age seD**

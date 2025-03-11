@@ -1,16 +1,16 @@
 ---
 desc: |-
-  Search and replace | Space Age seD
+  sod - filter and transform text within files
 
 long_desc: |-
-  sad is a regex search / replace tool. it provides vastly
-  improved ergonomics over sed.
+  sod is a regex search / replace tool. it provides vastly
+  improved ergonomics over sed, and mildly improved ergonomics
+  over sad.
 
   * amazing terminal UI.
   * preview changes
   * selectively apply changes
   * batch mode
+  * [and a sod exclusive] ripgrep-like usage
 
   integrates with fzf, diff-so-fancy, delta
-
-  https://github.com/ms-jpq/sad

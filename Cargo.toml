@@ -1,9 +1,9 @@
 [package]
-authors     = ["git@bigly.dog"]
-description = "Space Age seD | https://github.com/ms-jpq/sad"
+authors     = ["ms-jpq <git@bigly.dog>", "JJ <git@toki.la>"]
+description = "sod - filter and transform text within files"
 edition     = "2021"
-name        = "sad"
-version     = "0.4.32"
+name        = "sod"
+version     = "0.5.0"
 
 
 [dependencies]

@@ -1,10 +1,10 @@
-Name:           sad
-Version:        0.4.31
+Name:           sod
+Version:        0.5.0
 Release:        3%{?dist}
 Summary:        Space Age seD
-URL:            https://github.com/ms-jpq/sad
+URL:            https://github.com/omentic/sod
 License:        MIT
-Source0:        https://github.com/ms-jpq/sad/archive/refs/tags/v%{version}.tar.gz
+Source0:        https://github.com/omentic/sod/archive/refs/tags/v%{version}.tar.gz
 
 # BuildRequires: List all packages required to build the software
 BuildRequires:  git
@@ -52,6 +52,7 @@ $HOME/.cargo/bin/cargo test --release --locked --all-features
 /usr/bin/%{name}
 
 %changelog
+* Mon March 10 2025 - Danie de Jager - 0.5.0
 * Sun December 8 2024 - Danie de Jager - 0.4.31-3
 * Wed October 2 2024 - Danie de Jager - 0.4.31-2
 * Sat June 29 2024 - Danie de Jager - 0.4.31-1
